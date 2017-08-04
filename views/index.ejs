@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>来加入我们吧！pong友</p>
+    <div id="app">
+        <div>
+            <ul v-for="item of received">
+                <li>{{item}}</li>
+            </ul>
+        </div>
+        <input class="msg" type="text" v-model="text" @keyup.enter="sendMsg">
+        <button class="submit" @click="sendMsg">submit</button>
+    </div>
+    <script src="https://cdn.bootcss.com/vue/2.4.2/vue.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://w.1616.net/chaxun/iptolocal.php"></script>
+    <script>
+        //判断浏览器类型
+        function Browser() {
+            var type = '';
+            var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+            var isOpera = userAgent.indexOf("Opera") > -1; //判断是否Opera浏览器
+            var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera; //判断是否IE浏览器
+            var isEdge = userAgent.indexOf("Edge") > -1; //判断是否IE的Edge浏览器
+            var isFF = userAgent.indexOf("Firefox") > -1; //判断是否Firefox浏览器
+            var isSafari = userAgent.indexOf("Safari") > -1 && userAgent.indexOf("Chrome") == -1; //判断是否Safari浏览器
+            var isChrome = userAgent.indexOf("Chrome") > -1 && userAgent.indexOf("Safari") > -1; //判断Chrome浏览器
+            if(isOpera){
+                type = 'Opera浏览器用户';
+            }
+            else if(isIE){
+                type = 'Opera浏览器用户';
+            }
+            else if(isEdge){
+                type = 'Edge浏览器用户';
+            }
+            else if(isFF){
+                type = 'Firefox浏览器用户';
+            }
+            else if(isSafari){
+                type = 'Safari浏览器用户';
+            }
+            else if(isChrome){
+                type = 'Chrome浏览器用户';
+            }
+            else{
+                type = '某不知名浏览器用户';
+            }
+            return type;
+        }
+        var City = WData;
+        function IPandCity() {
+            return {
+                ip: City[0],
+                city: City[3] + City[1]
+            };
+        }
+
+        var userBrowser = Browser();
+        var userInfo = IPandCity();
+        var socket = io.connect();
+        var received = [];
+        socket.on('msg', function (data) {
+            received.push(data.msg);
+        });
+        var app = new Vue({
+            el: '#app',
+            data: {
+                text: '',
+                received: received
+            },
+            methods: {
+                sendMsg: function () {
+                    socket.emit('userInfo', JSON.stringify(userInfo));
+                    socket.emit('userBrowser', userBrowser);
+                    socket.emit('msg', {msg: this.text});
+                    this.text = '';
+                }
+            }
+        });
+    </script>
+  </body>
+</html>
